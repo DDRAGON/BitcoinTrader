@@ -77,64 +77,65 @@ function init() {
    trade.getBalance(function(err, response, payload) {
       data.moneyBalance = payload[0].amount;
       data.bitCoinBalance = payload[1].amount;
-   });
 
-   console.log('手数料を取得しています。');
-   trade.getTradingCommission(function(err, response, payload) {
-      data.tradingCommission = payload.commission_rate;
-   });
+      console.log('手数料を取得しています。');
+      trade.getTradingCommission(function(err, response, payload) {
+         data.tradingCommission = payload.commission_rate;
 
-   trade.cancelAll(function(){
-      console.log('全ての注文をキャンセルしました。');
 
-      setReferenceValues();
+         trade.cancelAll(function(){
+            console.log('全ての注文をキャンセルしました。');
 
-      // 平均取得額
-      trade.getExecutions(function(err, response, payload) {
-         var totalSize  = 0;
-         var totalPrice = 0;
-         var counter = 0;
-         for (var execution of payload) {
-            if (totalSize >= data.bitCoinBalance) {
-               return;
-            }
+            setReferenceValues();
 
-            totalPrice += execution.price;
-            counter += 1;
-         }
-         data.averagebitCoinBalance = Math.floor(totalPrice / counter);
-         console.log('平均取得額: ' + data.averagebitCoinBalance + '円');
+            // 平均取得額
+            trade.getExecutions(function(err, response, payload) {
+               var totalSize  = 0;
+               var totalPrice = 0;
+               var counter = 0;
+               for (var execution of payload) {
+                  if (totalSize >= data.bitCoinBalance) {
+                     return;
+                  }
 
-         // 売り注文
-         var sellPrice = Math.round(data.averagebitCoinBalance * 1.2);
-         var sellBTCSize = data.bitCoinBalance.toFixed(3);
-         trade.sellOrder(sellPrice, sellBTCSize, function(err, response, payload) {
-            console.log(sellPrice + '円で ' + sellBTCSize + ' BTC 売り注文を出しました ' + payload.child_order_acceptance_id);
-         });
-      });
-
-      // 買い注文
-      async.each(buyPercentages, function(item, callback){
-         var price = Math.floor(data.referenceValues.ltp * item);
-         var BTCSize = 0.001;
-         console.log('書う値段： ' + price);
-         trade.buyOrder(price, BTCSize, function(err, response, payload) {
-            console.log(price + '円で買い注文を出しました ' + payload.child_order_acceptance_id);
-            callback();
-         });
-
-      }, function(err){
-         //処理2
-         if(err) throw err;
-
-         setTimeout(function() {
-            trade.getOrders(function(err, response, payload) {
-               console.log('----- 注文一覧 -----');
-               for (var order of payload) {
-                  console.log(order.side + ' ' + order.price + '円 ' + order.child_order_acceptance_id);
+                  totalPrice += execution.price;
+                  counter += 1;
                }
+               data.averagebitCoinBalance = Math.floor(totalPrice / counter);
+               console.log('平均取得額: ' + data.averagebitCoinBalance + '円');
+
+               // 売り注文
+               var sellPrice = Math.round(data.averagebitCoinBalance * 1.2);
+               var sellBTCSize = data.bitCoinBalance.toFixed(3);
+               trade.sellOrder(sellPrice, sellBTCSize, function(err, response, payload) {
+                  console.log(sellPrice + '円で ' + sellBTCSize + ' BTC 売り注文を出しました ' + payload.child_order_acceptance_id);
+               });
             });
-         }, 1000);
+
+            // 買い注文
+            async.each(buyPercentages, function(item, callback){
+               var price = Math.floor(data.referenceValues.ltp * item);
+               var BTCSize = 0.001;
+               console.log('書う値段： ' + price);
+               trade.buyOrder(price, BTCSize, function(err, response, payload) {
+                  console.log(price + '円で買い注文を出しました ' + payload.child_order_acceptance_id);
+                  callback();
+               });
+
+            }, function(err){
+               //処理2
+               if(err) throw err;
+
+               setTimeout(function() {
+                  trade.getOrders(function(err, response, payload) {
+                     console.log('----- 注文一覧 -----');
+                     for (var order of payload) {
+                        console.log(order.side + ' ' + order.price + '円 ' + order.child_order_acceptance_id);
+                     }
+                  });
+               }, 1000);
+            });
+         });
       });
    });
 }
