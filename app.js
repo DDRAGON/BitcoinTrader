@@ -56,7 +56,9 @@ module.exports = app;
 
 
 const data = {
-   referenceValues: {}
+   referenceValues: {},
+   orders: [],
+   executions: []
 };
 
 function setReferenceValues() {
@@ -107,45 +109,54 @@ function init() {
                // 売り注文
                var sellPrice = Math.round(data.averagebitCoinBalance * 1.2);
                var sellBTCSize = data.bitCoinBalance.toFixed(3);
-               trade.sellOrder(sellPrice, sellBTCSize, function(err, response, payload) {
-                  console.log(sellPrice + '円で ' + sellBTCSize + ' BTC 売り注文を出しました ' + payload.child_order_acceptance_id);
-               });
+               setTimeout(function() {
+                  trade.sellOrder(sellPrice, sellBTCSize, function(err, response, payload) {
+                     console.log(sellPrice + '円で ' + sellBTCSize + ' BTC 売り注文を出しました ' + payload.child_order_acceptance_id);
+                  });
+               }, 3000);
             });
 
             // 買い注文
             async.each(buyPercentages, function(item, callback){
                var price = Math.floor(data.referenceValues.ltp * item);
                var BTCSize = 0.001;
-               console.log('書う値段： ' + price);
-               trade.buyOrder(price, BTCSize, function(err, response, payload) {
-                  console.log(price + '円で買い注文を出しました ' + payload.child_order_acceptance_id);
-                  callback();
-               });
+               setTimeout(function() {
+                  trade.buyOrder(price, BTCSize, function(err, response, payload) {
+                     console.log(price + '円で買い注文を出しました ' + payload.child_order_acceptance_id);
+                     callback();
+                  });
+               }, 1000);
 
             }, function(err){
                //処理2
                if(err) throw err;
 
-               setTimeout(function() {
-                  trade.getOrders(function(err, response, payload) {
-                     console.log('----- 注文一覧 -----');
-                     for (var order of payload) {
-                        console.log(order.side + ' ' + order.price + '円 ' + order.child_order_acceptance_id);
-                     }
-                  });
-               }, 1000);
             });
          });
       });
    });
 }
-setTimeout(init, 2000);
+setTimeout(init, 3000);
 
 
+// 毎朝４時の cron
 new CronJob('00 00 04 * * *', function() { // 毎日 4時00分00杪
    console.log('朝になりました。基準値と注文を更新します。');
-   trade.cancelAll(function(){
-      init();
-   });
+   init();
 }, null, true, 'Asia/Tokyo');
 
+// ３分おきに実行するもの
+setInterval(function () {
+   console.log('setInterval came');
+
+   // 注文一覧の取得
+   trade.getOrders(function(err, response, payload) {
+      data.orders = payload;
+   });
+
+   // 約定一覧の取得
+   trade.getExecutions(function(err, response, payload) {
+      data.executions = payload;
+   });
+
+}, 1000 * 60 * 3);
