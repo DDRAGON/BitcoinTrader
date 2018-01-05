@@ -120,20 +120,26 @@ function init() {
                setTimeout(function() {
                   trade.sellOrder(sellPrice, sellBTCSize, function(err, response, payload) {
                      if (err) { myLog(err); }
+                     if (payload.error_message) { myLog(payload.error_message); }
                      myLog(sellPrice + '円で ' + sellBTCSize + ' BTC 売り注文を出しました ' + payload.child_order_acceptance_id);
                   });
                }, 3000);
             });
 
             // 買い注文
-            async.each(buyPercentages, function(item, callback){
+            var BTCSize = 0;
+            async.eachSeries(buyPercentages, function(item, next){
                var price = Math.floor(data.referenceValues.ltp * item);
-               var BTCSize = 0.001;
-               trade.buyOrder(price, BTCSize, function(err, response, payload) {
-                  if (err) { myLog(err); }
-                  myLog(price + '円で買い注文を出しました ' + payload.child_order_acceptance_id);
-                  callback();
-               });
+               BTCSize += 0.001;
+               setTimeout(function() {
+                  trade.buyOrder(price, BTCSize, function(err, response, payload) {
+                     if (err) { myLog(err); }
+                     if (payload.error_message) { myLog(payload.error_message); }
+
+                     myLog(price + '円で買い注文を出しました ' + payload.child_order_acceptance_id);
+                     next();
+                  });
+               }, 1000);
 
             }, function(err){
                //処理2
@@ -154,7 +160,7 @@ function myLog(message) {
 
 
 // 毎朝４時の cron
-new CronJob('00 00 04 * * *', function() { // 毎日 4時00分00杪
+new CronJob('21 43 05 * * *', function() { // 毎日 5時43分21杪
    myLog('朝になりました。基準値と注文を更新します。');
    init();
 }, null, true, 'Asia/Tokyo');
