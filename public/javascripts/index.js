@@ -79,6 +79,14 @@ function getAPI() {
 
          }
          $("#executions").html(executionsText);
+
+
+         // ログ
+         let logsText = '';
+         for (let log of result.logs) {
+            logsText += '<p style="font-size: 80%;">' + log + '</p>';
+         }
+         $("#logs").html(logsText);
       }
    });
 }

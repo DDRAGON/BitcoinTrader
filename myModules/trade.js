@@ -29,8 +29,6 @@ function getBalance(callback) {
    };
    request(options, function (err, response, payload) {
       payload = JSON.parse(payload);
-      console.log(`あなたの 日本円 の残高は ${payload[0].amount}円 です。`);
-      console.log(`あなたの Bitcoin の残高は ${payload[1].amount} Bitcoin です。`);
       callback(err, response, payload);
    });
 }
@@ -53,7 +51,6 @@ function getTradingCommission(callback) {
    };
    request(options, function (err, response, payload) {
       payload = JSON.parse(payload);
-      console.log(`手数料は ${payload.commission_rate}円です。`);
       callback(err, response, payload);
    });
 }
