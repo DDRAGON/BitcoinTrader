@@ -104,7 +104,7 @@ function init() {
                for (var execution of payload) {
                   if (execution.side === 'SELL') { continue; }
 
-                  if (totalSize >= data.bitCoinBalance) {
+                  if (totalSize >= data.bitCoinBalance.toFixed(3)) {
                      return;
                   }
 
@@ -115,7 +115,7 @@ function init() {
                myLog('平均取得額: ' + data.averagebitCoinBalance + '円');
 
                // 売り注文
-               var sellPrice = Math.round(data.averagebitCoinBalance * 1.2);
+               var sellPrice = Math.round(data.averagebitCoinBalance * 1.5);
                var sellBTCSize = data.bitCoinBalance.toFixed(3);
                setTimeout(function() {
                   trade.sellOrder(sellPrice, sellBTCSize, function(err, response, payload) {
