@@ -96,27 +96,15 @@ function init() {
             setReferenceValues();
 
             // 平均取得額
-            trade.getExecutions(function(err, response, payload) {
-               if (err) { myLog(err); }
-               var totalSize  = 0;
-               var totalPrice = 0;
-               var counter = 0;
-               for (var execution of payload) {
-                  if (execution.side === 'SELL') { continue; }
-
-                  if (totalSize >= data.bitCoinBalance.toFixed(3)) {
-                     return;
-                  }
-
-                  totalPrice += execution.price;
-                  counter += 1;
-               }
-               data.averagebitCoinBalance = Math.floor(totalPrice / counter);
-               myLog('平均取得額: ' + data.averagebitCoinBalance + '円');
+            trade.getAverageBitCoinBalance(function(averageBitCoinBalance) {
+               data.averagebitCoinBalance = averageBitCoinBalance;
+               myLog('平均取得額: ' + averageBitCoinBalance + '円');
 
                // 売り注文
                var sellPrice = Math.round(data.averagebitCoinBalance * 1.5);
-               var sellBTCSize = data.bitCoinBalance.toFixed(3);
+               var canSellBTCSize = data.bitCoinBalance - data.bitCoinBalance * data.tradingCommission; // 手数料で引かれる
+               var sellBTCSize = Math.floor(canSellBTCSize * 1000) / 1000; // 取引可能額に変更
+
                setTimeout(function() {
                   trade.sellOrder(sellPrice, sellBTCSize, function(err, response, payload) {
                      if (err) { myLog(err); }
@@ -130,13 +118,13 @@ function init() {
             var BTCSize = 0;
             async.eachSeries(buyPercentages, function(item, next){
                var price = Math.floor(data.referenceValues.ltp * item);
-               BTCSize += 0.001;
+               BTCSize = (BTCSize * 1000 + 0.001 * 1000) / 1000;
                setTimeout(function() {
                   trade.buyOrder(price, BTCSize, function(err, response, payload) {
                      if (err) { myLog(err); }
                      if (payload.error_message) { myLog(payload.error_message); }
 
-                     myLog(price + '円で買い注文を出しました ' + payload.child_order_acceptance_id);
+                     myLog(price + '円で ' + BTCSize + ' BTC 買い注文を出しました ' + payload.child_order_acceptance_id);
                      next();
                   });
                }, 1000);
@@ -151,6 +139,7 @@ function init() {
    });
 }
 setTimeout(init, 3000);
+
 
 function myLog(message) {
    console.log(message);

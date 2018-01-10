@@ -230,6 +230,31 @@ function getExecutions(callback) {
    });
 }
 
+function getAverageBitCoinBalance(callback) {
+   getBalance(function(err, response, payload) {
+      const moneyBalance = payload[0].amount;
+      const bitCoinBalance = payload[1].amount;
+
+      getExecutions(function(err, response, payload) {
+
+         if (err) { myLog(err); }
+         var totalSize  = 0;
+         var totalPrice = 0;
+         for (var execution of payload) {
+            if (execution.side === 'SELL') { continue; }
+
+            if (totalSize >= bitCoinBalance.toFixed(3)) {
+               break;
+            }
+
+            totalPrice += execution.price * (execution.size * 1000);
+            totalSize  += execution.size;
+         }
+         const averageBitCoinBalance = Math.floor(totalPrice / (totalSize * 1000));
+         callback(averageBitCoinBalance);
+      });
+   });
+}
 
 module.exports = {
    getBalance: getBalance,
@@ -238,5 +263,6 @@ module.exports = {
    buyOrder: buyOrder,
    sellOrder: sellOrder,
    getOrders: getOrders,
-   getExecutions: getExecutions
+   getExecutions: getExecutions,
+   getAverageBitCoinBalance: getAverageBitCoinBalance
 }
