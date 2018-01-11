@@ -32,7 +32,6 @@ function getAPI() {
          differenceFromAverageText += '</span>';
 
          $("#realTime-balance").html(
-            "あなたの 日本円 の残高は " + result.moneyBalance + "円 です。<br>" +
             "あなたの Bitcoin の残高は " + result.bitCoinBalance + " Bitcoin です。<br>" +
             "平均 Bitcoin 取得額は " + result.averagebitCoinBalance + "円 です。 " + differenceFromAverageText +"<br>"
          );
@@ -86,7 +85,7 @@ function getAPI() {
          for (let log of result.logs) {
             logsText += '<p style="font-size: 80%;">' + log + '</p>';
          }
-         $("#logs").html(logsText);
+         // $("#logs").html(logsText);
       }
    });
 }

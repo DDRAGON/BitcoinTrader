@@ -167,4 +167,9 @@ setInterval(function () {
       data.executions = payload;
    });
 
+   // 平均取得額
+   trade.getAverageBitCoinBalance(function(averageBitCoinBalance) {
+      data.averagebitCoinBalance = averageBitCoinBalance;
+   });
+
 }, 1000 * 60 * 3);
