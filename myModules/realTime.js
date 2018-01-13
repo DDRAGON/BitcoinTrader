@@ -7,12 +7,15 @@ const pubnub = new PubNub({
 let ltp;
 let timestamp;
 
-pubnub.addListener({
-   message: function (message) {
-      timestamp = message.message.timestamp;
-      ltp = message.message.ltp;
-   }
-});
+const listener =
+   {
+      message: function (message) {
+         timestamp = message.message.timestamp;
+         ltp = message.message.ltp;
+      }
+   };
+
+pubnub.addListener(listener);
 pubnub.subscribe({
    channels: ['lightning_ticker_BTC_JPY']
 });
@@ -24,6 +27,14 @@ function getLtp() {
       timestamp: timestamp
    };
 }
+
+function resetListener () {
+   pubnub.removeListener(listener);
+   pubnub.addListener(listener);
+}
+
+setInterval(resetListener, 1000 * 60 * 60 * 24);
+
 
 module.exports = {
    ltp: ltp,

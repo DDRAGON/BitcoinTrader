@@ -101,7 +101,7 @@ function init() {
                myLog('平均取得額: ' + averageBitCoinBalance + '円');
 
                // 売り注文
-               var sellPrice = Math.round(data.averagebitCoinBalance * 1.5);
+               var sellPrice = Math.round(data.averagebitCoinBalance * 1.2);
                var canSellBTCSize = data.bitCoinBalance - data.bitCoinBalance * data.tradingCommission; // 手数料で引かれる
                var sellBTCSize = Math.floor(canSellBTCSize * 1000) / 1000; // 取引可能額に変更
 
