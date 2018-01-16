@@ -168,8 +168,10 @@ setInterval(function () {
    });
 
    // 平均取得額
-   trade.getAverageBitCoinBalance(function(averageBitCoinBalance) {
+   trade.getAverageBitCoinBalance(function(averageBitCoinBalance, moneyBalance, bitCoinBalance) {
       data.averagebitCoinBalance = averageBitCoinBalance;
+      data.moneyBalance   = moneyBalance;
+      data.bitCoinBalance = bitCoinBalance;
    });
 
 }, 1000 * 60 * 3);
