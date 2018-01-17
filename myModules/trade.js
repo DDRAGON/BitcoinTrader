@@ -109,6 +109,39 @@ function cancelAll(callback) {
    });
 }
 
+function cancelOrder(child_order_acceptance_id, callback) {
+   var timestamp = Date.now().toString();
+   var method = 'POST';
+   var path = '/v1/me/cancelchildorder';
+   var body = JSON.stringify(
+      {
+         "product_code": "BTC_JPY",
+         "child_order_acceptance_id": child_order_acceptance_id
+      }
+   );
+
+   var text = timestamp + method + path + body;
+   var sign = crypto.createHmac('sha256', API_Secret).update(text).digest('hex');
+
+   var options = {
+      url: 'https://api.bitflyer.jp' + path,
+      method: method,
+      body: body,
+      headers: {
+         'ACCESS-KEY': API_Key,
+         'ACCESS-TIMESTAMP': timestamp,
+         'ACCESS-SIGN': sign,
+         'Content-Type': 'application/json'
+      }
+   };
+   request(options, function (err, response, payload) {
+      console.log(response.statusCode);
+      callback(err, response, payload);
+   });
+}
+
+
+
 function buyOrder(price, BTCSize, callback) {
    var timestamp = Date.now().toString();
    var method = 'POST';
@@ -267,6 +300,7 @@ module.exports = {
    getBalance: getBalance,
    getTradingCommission: getTradingCommission,
    cancelAll: cancelAll,
+   cancelOrder: cancelOrder,
    buyOrder: buyOrder,
    sellOrder: sellOrder,
    getOrders: getOrders,

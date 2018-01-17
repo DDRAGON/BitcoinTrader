@@ -6,6 +6,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var CronJob = require('cron').CronJob;
 var async = require('async');
+var moment = require('moment-timezone');
 
 var trade = require('./myModules/trade');
 var realTime = require('./myModules/realTime');
@@ -66,7 +67,7 @@ function setReferenceValues() {
    const ltp = realTime.getLtp();
    myLog('基準： ' + ltp.ltp);
    data.referenceValues.ltp = ltp.ltp;
-   data.referenceValues.timestamp = ltp.timestamp;
+   data.referenceValues.timestamp = moment(ltp.timestamp).tz("Asia/Tokyo").format("YYYY年M月D日 hh:mm ss杪");
 }
 
 const buyPercentages = [
@@ -109,6 +110,7 @@ function init() {
                   trade.sellOrder(sellPrice, sellBTCSize, function(err, response, payload) {
                      if (err) { myLog(err); }
                      if (payload.error_message) { myLog(payload.error_message); }
+                     data.mostRecentrySellId = payload.child_order_acceptance_id;
                      myLog(sellPrice + '円で ' + sellBTCSize + ' BTC 売り注文を出しました ' + payload.child_order_acceptance_id);
                   });
                }, 3000);
@@ -119,6 +121,7 @@ function init() {
             async.eachSeries(buyPercentages, function(item, next){
                var price = Math.floor(data.referenceValues.ltp * item);
                BTCSize = (BTCSize * 1000 + 0.001 * 1000) / 1000;
+               console.log();
                setTimeout(function() {
                   trade.buyOrder(price, BTCSize, function(err, response, payload) {
                      if (err) { myLog(err); }
@@ -169,9 +172,26 @@ setInterval(function () {
 
    // 平均取得額
    trade.getAverageBitCoinBalance(function(averageBitCoinBalance, moneyBalance, bitCoinBalance) {
-      data.averagebitCoinBalance = averageBitCoinBalance;
       data.moneyBalance   = moneyBalance;
       data.bitCoinBalance = bitCoinBalance;
+
+      if (data.averagebitCoinBalance != averageBitCoinBalance) { // 平均取得額が変わっている
+         data.averagebitCoinBalance = averageBitCoinBalance;
+
+         trade.cancelOrder(data.mostRecentrySellId, function(payload) { // 買い注文のキャンセル
+
+            // 売り注文
+            var sellPrice = Math.round(data.averagebitCoinBalance * 1.2);
+            var canSellBTCSize = data.bitCoinBalance - data.bitCoinBalance * data.tradingCommission; // 手数料で引かれる
+            var sellBTCSize = Math.floor(canSellBTCSize * 1000) / 1000; // 取引可能額に変更
+            trade.sellOrder(sellPrice, sellBTCSize, function(err, response, payload) {
+               if (err) { myLog(err); }
+               if (payload.error_message) { myLog(payload.error_message); }
+               data.mostRecentrySellId = payload.child_order_acceptance_id;
+               myLog(sellPrice + '円で ' + sellBTCSize + ' BTC 売り注文を出しました ' + payload.child_order_acceptance_id);
+            });
+         });
+      }
    });
 
 }, 1000 * 60 * 3);

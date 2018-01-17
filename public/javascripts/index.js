@@ -11,11 +11,11 @@ function getAPI() {
          let diff = result.ltp - result.referenceValues.ltp;
          let diffText = '';
          if (diff >= 0) {
-            let percentage = (diff * 100 / result.referenceValues.ltp).toFixed(4);
+            let percentage = (diff * 100 / result.referenceValues.ltp).toFixed(2);
             diffText = '<span style="color: #00FF00";>+' + diff + ' 円 ' + percentage + '％</span>';
          } else {
             diff = diff * (-1);
-            let percentage = (diff * 100 / result.referenceValues.ltp).toFixed(4);
+            let percentage = (diff * 100 / result.referenceValues.ltp).toFixed(2);
             diffText = '<span style="color: #FF0000";>-' + diff + ' 円 ' + percentage + '％</span>';
          }
 
