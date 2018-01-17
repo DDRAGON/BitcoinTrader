@@ -67,7 +67,7 @@ function setReferenceValues() {
    const ltp = realTime.getLtp();
    myLog('基準： ' + ltp.ltp);
    data.referenceValues.ltp = ltp.ltp;
-   data.referenceValues.timestamp = moment(ltp.timestamp).tz("Asia/Tokyo").format("YYYY年M月D日 hh:mm ss杪");
+   data.referenceValues.timestamp = moment(ltp.timestamp).tz("Asia/Tokyo").format("YYYY年M月D日 HH:mm ss杪");
 }
 
 const buyPercentages = [

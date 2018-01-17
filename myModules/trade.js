@@ -1,6 +1,6 @@
 var request = require('request');
 var crypto = require('crypto');
-var moment = require('moment-timezone');
+
 
 const config = require('../config.js');
 
@@ -235,7 +235,7 @@ function getOrders(callback) {
    request(options, function (err, response, payload) {
       payload = JSON.parse(payload);
       for (var order of payload) {
-         order.child_order_date = moment(order.child_order_date+'Z').tz("Asia/Tokyo").format("YYYY年M月D日 hh:mm ss杪");
+         order.child_order_date = moment(order.child_order_date+'Z').tz("Asia/Tokyo").format("YYYY年M月D日 HH:mm ss杪");
       }
       callback(err, response, payload);
    });
@@ -264,7 +264,7 @@ function getExecutions(callback) {
    request(options, function (err, response, payload) {
       payload = JSON.parse(payload);
       for (var execution of payload) {
-         execution.exec_date = moment(execution.exec_date+'Z').tz("Asia/Tokyo").format("YYYY年M月D日 hh:mm ss杪");
+         execution.exec_date = moment(execution.exec_date+'Z').tz("Asia/Tokyo").format("YYYY年M月D日 HH:mm ss杪");
       }
       callback(err, response, payload);
    });
