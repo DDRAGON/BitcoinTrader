@@ -94,63 +94,65 @@ function init() {
 
          trade.cancelAll(function(){
             myLog('全ての注文をキャンセルしました。');
+            setTimeout(function() {
 
-            setReferenceValues();
+               setReferenceValues();
 
-            // 平均取得額
-            trade.getAverageBitCoinBalance(function(averageBitCoinBalance) {
-               data.averagebitCoinBalance = averageBitCoinBalance;
-               myLog('平均取得額: ' + averageBitCoinBalance + '円');
+               // 平均取得額
+               trade.getAverageBitCoinBalance(function(averageBitCoinBalance) {
+                  data.averagebitCoinBalance = averageBitCoinBalance;
+                  myLog('平均取得額: ' + averageBitCoinBalance + '円');
 
-               // 売り注文
-               var sellPrice = Math.round(data.averagebitCoinBalance * 1.2);
-               var canSellBTCSize = data.bitCoinBalance - data.bitCoinBalance * data.tradingCommission; // 手数料で引かれる
-               var sellBTCSize = Math.floor(canSellBTCSize * 1000) / 1000; // 取引可能額に変更
-
-               setTimeout(function() {
-                  trade.sellOrder(sellPrice, sellBTCSize, function(err, response, payload) {
-                     if (err) { myLog(err); }
-                     if (payload.error_message) { myLog(payload.error_message); }
-                     data.mostRecentrySellId = payload.child_order_acceptance_id;
-                     myLog(sellPrice + '円で ' + sellBTCSize + ' BTC 売り注文を出しました ' + payload.child_order_acceptance_id);
-                  });
-               }, 3000);
-            });
-
-            // 買い注文
-            var buyBTCSize = 0;
-            var canBuyBTCPrice = data.moneyBalance;
-            // 買いループ開始
-            async.eachSeries(buyPercentages, function(item, next) {
-               var buyPrice = Math.floor(data.referenceValues.ltp * item); // 買い値段
-               buyBTCSize   = (buyBTCSize * 1000 + 0.001 * 1000) / 1000; // 買う数量
-               var buyTotalPrice = (buyPrice * (buyBTCSize * 1000)) / 1000; // 買う合計額
-               if (canBuyBTCPrice < (0.001 *  buyPrice + buyPrice * data.tradingCommission))
-               {
-                  next(); // もう買えない時
-               } else {
-                  if (buyTotalPrice > canBuyBTCPrice) { // 買える金額の限界を迎えた時
-                     buyBTCSize = Math.floor(canBuyBTCPrice * 1000 / buyPrice) / 1000; // 買える量額調整
-                     buyTotalPrice = (buyPrice * (buyBTCSize * 1000)) / 1000; // 買う合計額
-                  }
-                  canBuyBTCPrice -= (buyTotalPrice + buyTotalPrice * data.tradingCommission);
+                  // 売り注文
+                  var sellPrice = Math.round(data.averagebitCoinBalance * 1.2);
+                  var canSellBTCSize = data.bitCoinBalance - data.bitCoinBalance * data.tradingCommission; // 手数料で引かれる
+                  var sellBTCSize = Math.floor(canSellBTCSize * 1000) / 1000; // 取引可能額に変更
 
                   setTimeout(function() {
-                     trade.buyOrder(buyPrice, buyBTCSize, function(err, response, payload) {
+                     trade.sellOrder(sellPrice, sellBTCSize, function(err, response, payload) {
                         if (err) { myLog(err); }
                         if (payload.error_message) { myLog(payload.error_message); }
-
-                        myLog(buyPrice + '円で ' + buyBTCSize + ' BTC 買い注文を出しました ' + payload.child_order_acceptance_id);
-                        next();
+                        data.mostRecentrySellId = payload.child_order_acceptance_id;
+                        myLog(sellPrice + '円で ' + sellBTCSize + ' BTC 売り注文を出しました ' + payload.child_order_acceptance_id);
                      });
-                  }, 1000);
-               }
+                  }, 3000);
+               });
 
-            }, function(err){
-               //処理2
-               if (err) { myLog(err); }
-               myLog('!買い注文完了!');
-            });
+               // 買い注文
+               var buyBTCSize = 0;
+               var canBuyBTCPrice = data.moneyBalance;
+               // 買いループ開始
+               async.eachSeries(buyPercentages, function(item, next) {
+                  var buyPrice = Math.floor(data.referenceValues.ltp * item); // 買い値段
+                  buyBTCSize   = (buyBTCSize * 1000 + 0.001 * 1000) / 1000; // 買う数量
+                  var buyTotalPrice = (buyPrice * (buyBTCSize * 1000)) / 1000; // 買う合計額
+                  if (canBuyBTCPrice < (0.001 *  buyPrice + buyPrice * data.tradingCommission))
+                  {
+                     next(); // もう買えない時
+                  } else {
+                     if (buyTotalPrice > canBuyBTCPrice) { // 買える金額の限界を迎えた時
+                        buyBTCSize = Math.floor(canBuyBTCPrice * 1000 / buyPrice) / 1000; // 買える量額調整
+                        buyTotalPrice = (buyPrice * (buyBTCSize * 1000)) / 1000; // 買う合計額
+                     }
+                     canBuyBTCPrice -= (buyTotalPrice + buyTotalPrice * data.tradingCommission);
+
+                     setTimeout(function() {
+                        trade.buyOrder(buyPrice, buyBTCSize, function(err, response, payload) {
+                           if (err) { myLog(err); }
+                           if (payload.error_message) { myLog(payload.error_message); }
+
+                           myLog(buyPrice + '円で ' + buyBTCSize + ' BTC 買い注文を出しました ' + payload.child_order_acceptance_id);
+                           next();
+                        });
+                     }, 1000);
+                  }
+
+               }, function(err){
+                  //処理2
+                  if (err) { myLog(err); }
+                  myLog('!買い注文完了!');
+               });
+            }, 5000);
          });
       });
    });
