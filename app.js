@@ -196,16 +196,18 @@ setInterval(function () {
 
          trade.cancelOrder(data.mostRecentrySellId, function(payload) { // 買い注文のキャンセル
 
-            // 売り注文
-            var sellPrice = Math.round(data.averagebitCoinBalance * 1.2);
-            var canSellBTCSize = data.bitCoinBalance - data.bitCoinBalance * data.tradingCommission; // 手数料で引かれる
-            var sellBTCSize = Math.floor(canSellBTCSize * 1000) / 1000; // 取引可能額に変更
-            trade.sellOrder(sellPrice, sellBTCSize, function(err, response, payload) {
-               if (err) { myLog(err); }
-               if (payload.error_message) { myLog(payload.error_message); }
-               data.mostRecentrySellId = payload.child_order_acceptance_id;
-               myLog(sellPrice + '円で ' + sellBTCSize + ' BTC 売り注文を出しました ' + payload.child_order_acceptance_id);
-            });
+            setTimeout(function() {
+               // 売り注文
+               var sellPrice = Math.round(data.averagebitCoinBalance * 1.2);
+               var canSellBTCSize = data.bitCoinBalance - data.bitCoinBalance * data.tradingCommission; // 手数料で引かれる
+               var sellBTCSize = Math.floor(canSellBTCSize * 1000) / 1000; // 取引可能額に変更
+               trade.sellOrder(sellPrice, sellBTCSize, function(err, response, payload) {
+                  if (err) { myLog(err); }
+                  if (payload.error_message) { myLog(payload.error_message); }
+                  data.mostRecentrySellId = payload.child_order_acceptance_id;
+                  myLog(sellPrice + '円で ' + sellBTCSize + ' BTC 売り注文を出しました ' + payload.child_order_acceptance_id);
+               });
+            }, 5000);
          });
       }
    });
