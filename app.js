@@ -104,7 +104,7 @@ function init() {
                   myLog('平均取得額: ' + averageBitCoinBalance + '円');
 
                   // 売り注文
-                  var sellPrice = Math.round(data.averagebitCoinBalance * 1.2);
+                  var sellPrice = Math.round(data.averagebitCoinBalance * 1.1);
                   var canSellBTCSize = data.bitCoinBalance - data.bitCoinBalance * data.tradingCommission; // 手数料で引かれる
                   var sellBTCSize = Math.floor(canSellBTCSize * 1000) / 1000; // 取引可能額に変更
 
@@ -193,12 +193,15 @@ setInterval(function () {
 
       if (data.averagebitCoinBalance != averageBitCoinBalance) { // 平均取得額が変わっている
          data.averagebitCoinBalance = averageBitCoinBalance; // 値更新
+         myLog('平均値が変わっている');
 
-         trade.cancelOrder(data.mostRecentrySellId, function(payload) { // 買い注文のキャンセル
+         trade.cancelOrder(data.mostRecentrySellId, function(payload) { // 売り注文のキャンセル
+            myLog('平均値が変わっているので売り注文のキャンセル');
 
             setTimeout(function() {
                // 売り注文
-               var sellPrice = Math.round(data.averagebitCoinBalance * 1.2);
+               myLog('売り更新の setTimeout 内部');
+               var sellPrice = Math.round(data.averagebitCoinBalance * 1.1);
                var canSellBTCSize = data.bitCoinBalance - data.bitCoinBalance * data.tradingCommission; // 手数料で引かれる
                var sellBTCSize = Math.floor(canSellBTCSize * 1000) / 1000; // 取引可能額に変更
                trade.sellOrder(sellPrice, sellBTCSize, function(err, response, payload) {
