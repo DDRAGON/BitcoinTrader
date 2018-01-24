@@ -1,6 +1,6 @@
 
 
-setInterval(getAPI, 500);
+setInterval(getAPI, 1000);
 
 function getAPI() {
    $.ajax({

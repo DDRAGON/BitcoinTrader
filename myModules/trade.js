@@ -233,6 +233,11 @@ function getOrders(callback) {
       }
    };
    request(options, function (err, response, payload) {
+      if (err){
+         console.log('in getOrders');
+         console.log(err);
+         return callback(err, response, payload);
+      }
       payload = JSON.parse(payload);
       for (var order of payload) {
          order.child_order_date = moment(order.child_order_date+'Z').tz("Asia/Tokyo").format("YYYY年M月D日 HH:mm ss杪");
@@ -262,6 +267,11 @@ function getExecutions(callback) {
       }
    };
    request(options, function (err, response, payload) {
+      if (err){
+         console.log('in getExecutions');
+         console.log(err);
+         return callback(err, response, payload);
+      }
       payload = JSON.parse(payload);
       for (var execution of payload) {
          execution.exec_date = moment(execution.exec_date+'Z').tz("Asia/Tokyo").format("YYYY年M月D日 HH:mm ss杪");
@@ -272,12 +282,13 @@ function getExecutions(callback) {
 
 function getAverageBitCoinBalance(callback) {
    getBalance(function(err, response, payload) {
+      if (err) { console.log(err); return; }
       const moneyBalance = payload[0].amount;
       const bitCoinBalance = payload[1].amount;
 
       getExecutions(function(err, response, payload) {
 
-         if (err) { myLog(err); }
+         if (err) { console.log(err); return; }
          var totalSize  = 0;
          var totalPrice = 0;
          for (var execution of payload) {

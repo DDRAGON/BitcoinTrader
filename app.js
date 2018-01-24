@@ -71,7 +71,7 @@ function setReferenceValues() {
 }
 
 const buyPercentages = [
-                           0.95, 0.94, 0.93, 0.92, 0.91, 0.9,
+                           0.95,             0.92,       0.9,
    0.89, 0.88, 0.87, 0.86, 0.85, 0.84, 0.83, 0.82, 0.81, 0.8,
    0.79, 0.78, 0.77, 0.76, 0.75, 0.74, 0.73, 0.72, 0.71, 0.7,
    0.69, 0.68, 0.67, 0.66, 0.65, 0.64, 0.63, 0.62, 0.61, 0.6
@@ -152,7 +152,7 @@ function init() {
                   if (err) { myLog(err); }
                   myLog('!買い注文完了!');
                });
-            }, 5000);
+            }, 1000 * 60);
          });
       });
    });
@@ -178,11 +178,13 @@ setInterval(function () {
 
    // 注文一覧の取得
    trade.getOrders(function(err, response, payload) {
+      if (err) return;
       data.orders = payload;
    });
 
    // 約定一覧の取得
    trade.getExecutions(function(err, response, payload) {
+      if (err) return;
       data.executions = payload;
    });
 
@@ -210,7 +212,7 @@ setInterval(function () {
                   data.mostRecentrySellId = payload.child_order_acceptance_id;
                   myLog(sellPrice + '円で ' + sellBTCSize + ' BTC 売り注文を出しました ' + payload.child_order_acceptance_id);
                });
-            }, 5000);
+            }, 1000 * 60);
          });
       }
    });
