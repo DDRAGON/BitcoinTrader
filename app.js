@@ -80,6 +80,11 @@ function init() {
 
    myLog('日本円残高とビットコイン残高を取得しています。');
    trade.getBalance(function(err, response, payload) {
+      if (err) {
+         console.log('３分後にもう一度アクセスを試してみます。');
+         setTimeout(init, 1000 * 60 * 3);
+         return;
+      }
       data.moneyBalance = payload[0].amount;
       data.bitCoinBalance = payload[1].amount;
       myLog(`あなたの 日本円 の残高は ${payload[0].amount}円 です。`);

@@ -29,6 +29,10 @@ function getBalance(callback) {
       }
    };
    request(options, function (err, response, payload) {
+      if (err) {
+         console.log('bitflyer が止まっています。');
+         return callback(err, response, payload);
+      }
       payload = JSON.parse(payload);
       callback(err, response, payload);
    });
