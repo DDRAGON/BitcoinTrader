@@ -79,20 +79,29 @@ const buyPercentages = [
 function init() {
 
    myLog('日本円残高とビットコイン残高を取得しています。');
-   trade.getBalance(function(err, response, payload) {
+   trade.getAverageBitCoinBalance(function(err, averageBitCoinBalance, moneyBalance, bitCoinBalance) {
       if (err) {
          console.log('３分後にもう一度アクセスを試してみます。');
          setTimeout(init, 1000 * 60 * 3);
          return;
       }
-      data.moneyBalance = payload[0].amount;
-      data.bitCoinBalance = payload[1].amount;
-      myLog(`あなたの 日本円 の残高は ${payload[0].amount}円 です。`);
-      myLog(`あなたの Bitcoin の残高は ${payload[1].amount} Bitcoin です。`);
+
+      data.moneyBalance   = moneyBalance;
+      data.bitCoinBalance = bitCoinBalance;
+      data.averagebitCoinBalance = averageBitCoinBalance;
+      myLog(`あなたの 日本円 の残高は ${moneyBalance}円 です。`);
+      myLog(`あなたの Bitcoin の残高は ${bitCoinBalance} Bitcoin です。`);
+      myLog('平均取得額: ' + averageBitCoinBalance + '円');
+
 
       myLog('手数料を取得しています。');
       trade.getTradingCommission(function(err, response, payload) {
-         if (err) { myLog(err); }
+         if (err) {
+            console.log('３分後にもう一度アクセスを試してみます。');
+            setTimeout(init, 1000 * 60 * 3);
+            return;
+         }
+
          data.tradingCommission = payload.commission_rate;
          myLog(`手数料は ${payload.commission_rate}円です。`);
 
@@ -103,22 +112,16 @@ function init() {
 
                setReferenceValues();
 
-               // 平均取得額
-               trade.getAverageBitCoinBalance(function(averageBitCoinBalance) {
-                  data.averagebitCoinBalance = averageBitCoinBalance;
-                  myLog('平均取得額: ' + averageBitCoinBalance + '円');
+               // 売り注文
+               var sellPrice = Math.round(data.averagebitCoinBalance * 1.1);
+               var canSellBTCSize = data.bitCoinBalance - data.bitCoinBalance * data.tradingCommission; // 手数料で引かれる
+               var sellBTCSize = Math.floor(canSellBTCSize * 1000) / 1000; // 取引可能額に変更
 
-                  // 売り注文
-                  var sellPrice = Math.round(data.averagebitCoinBalance * 1.1);
-                  var canSellBTCSize = data.bitCoinBalance - data.bitCoinBalance * data.tradingCommission; // 手数料で引かれる
-                  var sellBTCSize = Math.floor(canSellBTCSize * 1000) / 1000; // 取引可能額に変更
-
-                  trade.sellOrder(sellPrice, sellBTCSize, function(err, response, payload) {
-                     if (err) { myLog(err); }
-                     if (payload.error_message) { myLog(payload.error_message); }
-                     data.mostRecentrySellId = payload.child_order_acceptance_id;
-                     myLog(sellPrice + '円で ' + sellBTCSize + ' BTC 売り注文を出しました ' + payload.child_order_acceptance_id);
-                  });
+               trade.sellOrder(sellPrice, sellBTCSize, function(err, response, payload) {
+                  if (err) { myLog(err); }
+                  if (payload.error_message) { myLog(payload.error_message); }
+                  data.mostRecentrySellId = payload.child_order_acceptance_id;
+                  myLog(sellPrice + '円で ' + sellBTCSize + ' BTC 売り注文を出しました ' + payload.child_order_acceptance_id);
                });
 
                // 買い注文
