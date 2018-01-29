@@ -113,14 +113,12 @@ function init() {
                   var canSellBTCSize = data.bitCoinBalance - data.bitCoinBalance * data.tradingCommission; // 手数料で引かれる
                   var sellBTCSize = Math.floor(canSellBTCSize * 1000) / 1000; // 取引可能額に変更
 
-                  setTimeout(function() {
-                     trade.sellOrder(sellPrice, sellBTCSize, function(err, response, payload) {
-                        if (err) { myLog(err); }
-                        if (payload.error_message) { myLog(payload.error_message); }
-                        data.mostRecentrySellId = payload.child_order_acceptance_id;
-                        myLog(sellPrice + '円で ' + sellBTCSize + ' BTC 売り注文を出しました ' + payload.child_order_acceptance_id);
-                     });
-                  }, 3000);
+                  trade.sellOrder(sellPrice, sellBTCSize, function(err, response, payload) {
+                     if (err) { myLog(err); }
+                     if (payload.error_message) { myLog(payload.error_message); }
+                     data.mostRecentrySellId = payload.child_order_acceptance_id;
+                     myLog(sellPrice + '円で ' + sellBTCSize + ' BTC 売り注文を出しました ' + payload.child_order_acceptance_id);
+                  });
                });
 
                // 買い注文
