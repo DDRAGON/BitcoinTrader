@@ -33,6 +33,7 @@ function getBalance(callback) {
          console.log('bitflyer が止まっています。');
          return callback(err, response, payload);
       }
+      console.log('getBalance no err');
       payload = JSON.parse(payload);
       callback(err, response, payload);
    });
@@ -242,6 +243,7 @@ function getOrders(callback) {
          console.log(err);
          return callback(err, response, payload);
       }
+      console.log('getOrders no err');
       payload = JSON.parse(payload);
       for (var order of payload) {
          order.child_order_date = moment(order.child_order_date+'Z').tz("Asia/Tokyo").format("YYYY年M月D日 HH:mm ss杪");
@@ -276,6 +278,7 @@ function getExecutions(callback) {
          console.log(err);
          return callback(err, response, payload);
       }
+      console.log('getExecutions no err');
       payload = JSON.parse(payload);
       for (var execution of payload) {
          execution.exec_date = moment(execution.exec_date+'Z').tz("Asia/Tokyo").format("YYYY年M月D日 HH:mm ss杪");
@@ -286,13 +289,18 @@ function getExecutions(callback) {
 
 function getAverageBitCoinBalance(callback) {
    getBalance(function(err, response, payload) {
-      if (err) { console.log(err); return; }
+      if (err) {
+         console.log(err);
+         return callback(err, 0, 0, 0);
+      }
       const moneyBalance = payload[0].amount;
       const bitCoinBalance = payload[1].amount;
 
       getExecutions(function(err, response, payload) {
-
-         if (err) { console.log(err); return; }
+         if (err) {
+            console.log(err);
+            return callback(err, 0, 0, 0);
+         }
          var totalSize  = 0;
          var totalPrice = 0;
          for (var execution of payload) {
@@ -306,7 +314,7 @@ function getAverageBitCoinBalance(callback) {
             totalSize  += execution.size;
          }
          const averageBitCoinBalance = Math.floor(totalPrice / (totalSize * 1000));
-         callback(averageBitCoinBalance, moneyBalance, bitCoinBalance);
+         callback(undefined, averageBitCoinBalance, moneyBalance, bitCoinBalance);
       });
    });
 }

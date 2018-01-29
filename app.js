@@ -71,8 +71,8 @@ function setReferenceValues() {
 }
 
 const buyPercentages = [
-                           0.95,             0.92,       0.9,
-   0.89, 0.88, 0.87, 0.86, 0.85, 0.84, 0.83, 0.82, 0.81, 0.8,
+
+   0.89,       0.87, 0.86, 0.85, 0.84, 0.83, 0.82, 0.81, 0.8,
    0.79, 0.78, 0.77, 0.76, 0.75, 0.74, 0.73, 0.72, 0.71, 0.7,
    0.69, 0.68, 0.67, 0.66, 0.65, 0.64, 0.63, 0.62, 0.61, 0.6
 ];
@@ -180,6 +180,7 @@ new CronJob('21 43 05 * * *', function() { // 毎日 5時43分21杪
 
 // ３分おきに実行するもの
 setInterval(function () {
+   myLog('３分おき実行はじめます。');
 
    // 注文一覧の取得
    trade.getOrders(function(err, response, payload) {
@@ -194,7 +195,8 @@ setInterval(function () {
    });
 
    // 平均取得額
-   trade.getAverageBitCoinBalance(function(averageBitCoinBalance, moneyBalance, bitCoinBalance) {
+   trade.getAverageBitCoinBalance(function(err, averageBitCoinBalance, moneyBalance, bitCoinBalance) {
+      if (err) return;
       data.moneyBalance   = moneyBalance;
       data.bitCoinBalance = bitCoinBalance;
 
