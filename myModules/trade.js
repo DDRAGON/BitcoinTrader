@@ -239,16 +239,23 @@ function getOrders(callback) {
    };
    request(options, function (err, response, payload) {
       if (err){
-         console.log('in getOrders');
+         console.log('err in getOrders');
          console.log(err);
          return callback(err, response, payload);
       }
       console.log('getOrders no err');
-      payload = JSON.parse(payload);
-      for (var order of payload) {
-         order.child_order_date = moment(order.child_order_date+'Z').tz("Asia/Tokyo").format("YYYY年M月D日 HH:mm ss杪");
+      try {
+         payload = JSON.parse(payload);
+         for (var order of payload) {
+            order.child_order_date = moment(order.child_order_date+'Z').tz("Asia/Tokyo").format("YYYY年M月D日 HH:mm ss杪");
+         }
+         callback(err, response, payload);
+      } catch (err) {
+         console.log('err in getOrders after parts.');
+         console.log(payload);
+         console.log(err);
+         return callback(err, response, payload);
       }
-      callback(err, response, payload);
    });
 }
 
@@ -274,16 +281,24 @@ function getExecutions(callback) {
    };
    request(options, function (err, response, payload) {
       if (err){
-         console.log('in getExecutions');
+         console.log('err in getExecutions');
          console.log(err);
          return callback(err, response, payload);
       }
       console.log('getExecutions no err');
-      payload = JSON.parse(payload);
-      for (var execution of payload) {
-         execution.exec_date = moment(execution.exec_date+'Z').tz("Asia/Tokyo").format("YYYY年M月D日 HH:mm ss杪");
+      try {
+         payload = JSON.parse(payload);
+         for (var execution of payload) {
+            execution.exec_date = moment(execution.exec_date+'Z').tz("Asia/Tokyo").format("YYYY年M月D日 HH:mm ss杪");
+         }
+
+         callback(err, response, payload);
+      } catch (err) {
+         console.log('err in getExecutions after parts.');
+         console.log(payload);
+         console.log(err);
+         return callback(err, response, payload);
       }
-      callback(err, response, payload);
    });
 }
 
@@ -296,14 +311,14 @@ function getAverageBitCoinBalance(callback) {
       const moneyBalance = payload[0].amount;
       const bitCoinBalance = payload[1].amount;
 
-      getExecutions(function(err, response, payload) {
+      getExecutions(function(err, response, executions) {
          if (err) {
             console.log(err);
             return callback(err, 0, 0, 0);
          }
          var totalSize  = 0;
          var totalPrice = 0;
-         for (var execution of payload) {
+         for (var execution of executions) {
             if (execution.side === 'SELL') { continue; }
 
             if (totalSize >= bitCoinBalance.toFixed(3)) {
@@ -314,7 +329,7 @@ function getAverageBitCoinBalance(callback) {
             totalSize  += execution.size;
          }
          const averageBitCoinBalance = Math.floor(totalPrice / (totalSize * 1000));
-         callback(undefined, averageBitCoinBalance, moneyBalance, bitCoinBalance);
+         callback(undefined, averageBitCoinBalance, moneyBalance, bitCoinBalance, executions);
       });
    });
 }
