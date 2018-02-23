@@ -33,9 +33,14 @@ function getBalance(callback) {
          console.log('bitflyer が止まっています。');
          return callback(err, response, payload);
       }
-      console.log('getBalance no err');
-      payload = JSON.parse(payload);
-      callback(err, response, payload);
+      try {
+         payload = JSON.parse(payload);
+         callback(err, response, payload);
+      } catch (err) {
+         console.log('err in getBalance after parts.');
+         return callback(err, response, payload);
+      }
+
    });
 }
 
@@ -285,7 +290,6 @@ function getExecutions(callback) {
          console.log(err);
          return callback(err, response, payload);
       }
-      console.log('getExecutions no err');
       try {
          payload = JSON.parse(payload);
          for (var execution of payload) {
@@ -306,7 +310,7 @@ function getAverageBitCoinBalance(callback) {
    getBalance(function(err, response, payload) {
       if (err) {
          console.log(err);
-         return callback(err, 0, 0, 0);
+         return callback(err, 0, 0, 0, []);
       }
       const moneyBalance = payload[0].amount;
       const bitCoinBalance = payload[1].amount;
@@ -314,7 +318,7 @@ function getAverageBitCoinBalance(callback) {
       getExecutions(function(err, response, executions) {
          if (err) {
             console.log(err);
-            return callback(err, 0, 0, 0);
+            return callback(err, 0, 0, 0, []);
          }
          var totalSize  = 0;
          var totalPrice = 0;
