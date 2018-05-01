@@ -248,7 +248,6 @@ function getOrders(callback) {
          console.log(err);
          return callback(err, response, payload);
       }
-      console.log('getOrders no err');
       try {
          payload = JSON.parse(payload);
          for (var order of payload) {

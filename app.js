@@ -56,7 +56,7 @@ app.use(function(err, req, res, next) {
 module.exports = app;
 
 
-const SELL_PERCENTAGE = 2.0;
+const SELL_PERCENTAGE = 2;
 const data = {
    referenceValues: {},
    orders: [],
@@ -183,7 +183,6 @@ new CronJob('21 43 05 * * *', function() { // 毎日 5時43分21杪
 
 // ３分おきに実行するもの
 setInterval(function () {
-   myLog('３分おき実行はじめます。');
 
    // 注文一覧の取得
    trade.getOrders(function(err, response, payload) {

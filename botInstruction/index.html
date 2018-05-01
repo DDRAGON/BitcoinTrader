@@ -1,0 +1,263 @@
+<html lang="ja">
+  <head>
+      <meta charset="utf-8">
+      <title>BitCoin 自動取引ボットの作り方</title>
+  </head>
+  <body>
+
+
+<h1>BitCoin 自動取引ボットの作り方</h1>
+
+
+N予備校プログラミング入門コースで扱っている Node.js を使って ビットコインの自動取引ボットを作成してみましょう。<br>
+
+BitFlyer が提供している
+<a href="https://lightning.bitflyer.jp/docs?lang=ja">bitFlyer Lightning API</a>
+という API を使用すれば Node.js の知識を使って自動取引ボットを作ることができます。<br>
+<br>
+この <a href="https://lightning.bitflyer.jp/docs?lang=ja">bitFlyer Lightning API</a> は、
+説明も日本語でかつ、サンプルコードも日本語なのでこれを見ながらプログラムを書いてボットを作っていきましょう。<br>
+
+
+
+<h2>1. アカウントを作ろう</h2>
+
+以下の URL から BitFlyer のアカウントを作成します。<br>
+<a href="https://bitflyer.jp?bf=lfjwyvii">アカウント作成ページ</a><br>
+<br>
+アカウントが作成できたら、ログインをして
+<a href="https://bitflyer.jp/ja-jp/ex/Home">アカウントのホーム画面</a> にて
+現在の資産状況や、様々な手続きのページに飛ぶことができるようになっています。<br>
+<br>
+例えば<br>
+<a href="https://lightning.bitflyer.jp/trade">bitFlyer Lightning</a>
+では、Web から現在取引取引されている様子を見ることができますし、取引を行うこともできます。<br>
+また <a href="https://bitflyer.jp/ja-jp/ex/Withdrawal">入出金 ページ</a>では、
+銀行振込やインターネットバンキングなど様々な方法でアカウントに入出金することができます。<br>
+
+
+
+<h2>2. 入金しよう</h2>
+
+
+<a href="https://bitflyer.jp/ja-jp/ex/Withdrawal">入出金 ページ</a> より入金します。<br>
+反映には少し時間がかかることがります、なお、銀行振込で入金する場合は平日のみ処理が行われますので、
+金曜日に入金すると次週の月曜日まで反映されませんので、注意しましょう。
+
+
+
+<h2>3. アプリケーション登録</h2>
+
+
+<a href="https://lightning.bitflyer.jp/developer">開発者ページ</a> にアクセスします。<br>
+<br>
+ログインができていると、 API Key と API Secret が取得できると思います。<br>
+これをプログラムで設定してつかっていきます。<br>
+<br>
+<img src="images/APIKeys.png">
+<br>
+また、Actions の編集（上図③） をクリックして、できる API キーの権限を設定もできます。<br>
+
+
+
+<h2>4. API リファレンスを見てみる。</h2>
+
+<a href="https://lightning.bitflyer.jp/docs?lang=ja">API Documentation</a> では、
+HTTP API と Realtime API の 2 種類の API の機能が 日本語によって記載されています。<br>
+さらに、サンプルコードが Node.js で書かれています。<br>
+<br>
+これを見ながら、プログラムを実装していきましょう。
+
+
+
+<h2>5. Node.js のインストール</h2>
+
+
+こたつでプログラミングを参照
+
+
+
+<h2>6. プログラムを書いてみる。</h2>
+
+<h3>6-1. 準備</h3>
+
+<pre><code>mkdir ~/workspace
+mkdir ~/workspace/bitTrader
+cd ~/workspace/bitTrader
+npm init
+touch config.js
+echo "config.js\nnode_modules/" > .gitignore
+</code></pre>
+
+VSCode などのエディタでプロジェクトフォルダーを開いたら、
+config.js が下記のようになっていることを確認」しましょう。
+
+<pre><code>
+config.js
+node_modules/
+</code></pre>
+
+
+<h3>6-2. config.js の作成</h3>
+
+<pre><code>
+const API_keys = {
+  API_Key: 'XXXXXXXXXXXXXXXXXXXXXXXX',
+  API_Secret: '1234567890YYYYYYYYYYYYYYYYYYYY'
+};
+
+
+module.exports = {
+  API_keys: API_keys
+}
+</code></pre>
+
+API_Key と API_Secret の箇所は、
+先ほど自分で取得したものに設定してください。
+
+
+<h2>7. Realtime API を使って最終取引額（ltp）を取得してみよう</h2>
+
+
+Realtime API は、<a href="https://www.pubnub.com/">PubNub</a> を利用してリアルタイムの更新情報を配信れています。<br>
+以下の Subscribe Key を使用して受信できます。<br>
+
+<code>PubNub Subscribe Key: sub-c-52a9ab50-291b-11e5-baaa-0619f8945a4f</code><br>
+
+<a href="https://www.pubnub.com/documentation/">PubNub のドキュメント</a>もあります。<br>
+
+
+<pre><code>
+npm install pubnub --save
+</code></pre>
+
+<a href="https://lightning.bitflyer.jp/docs?lang=ja#realtime-api">Realtime API</a> を参考に<br>
+index.js を以下のように実装してみましょう。
+
+
+<pre><code>
+const PubNub = require('pubnub');
+const pubnub = new PubNub({
+  subscribeKey: 'sub-c-52a9ab50-291b-11e5-baaa-0619f8945a4f'
+});
+
+
+let ltp;
+let timestamp;
+
+const listener =
+{
+  message: function (message) {
+    timestamp = message.message.timestamp;
+    ltp = message.message.ltp;
+    console.log(`最終取引残高(ltp)は ${ltp} 円です。`);
+  }
+};
+
+pubnub.addListener(listener);
+pubnub.subscribe({
+  channels: ['lightning_ticker_BTC_JPY']
+});
+
+</code></pre>
+
+node index.js で実行すると、すごい速さでログが更新されるのが確認できるかと思います。<br>
+<code>Ctrl + C</code> で終了しましょう。
+
+
+<h2>8. HTTP Private API を使って買い注文や売り注文を出してみよう</h2>
+
+
+<a href="https://lightning.bitflyer.jp/docs?lang=ja#http-private-api">HTTP Private API</a>
+
+
+
+<pre><code>
+npm install request --save
+npm install crypto --save
+npm install moment-timezone --save
+</code></pre>
+
+以下を追加<br>
+<br>
+先頭
+
+
+<pre><code>
+var request = require('request');
+var crypto = require('crypto');
+var moment = require('moment-timezone');
+
+const config = require('../config.js');
+
+const API_Key    = config.API_keys.API_Key;
+const API_Secret = config.API_keys.API_Secret;
+</code></pre>
+
+
+本文<br>
+
+  <pre><code>
+      function buyOrder(price, BTCSize) {
+      return new Promise(function(resolve, reject){
+      var timestamp = Date.now().toString();
+      var method = 'POST';
+      var path = '/v1/me/sendchildorder';
+      var body = JSON.stringify({
+      "product_code": "BTC_JPY",
+      "child_order_type": "LIMIT",
+      "side": "BUY",
+      "price": price,
+      "size": BTCSize,
+      "minute_to_expire": 1440,
+      "time_in_force": "GTC"
+      });
+
+      var text = timestamp + method + path + body;
+      var sign = crypto.createHmac('sha256', API_Secret).update(text).digest('hex');
+
+      var options = {
+      url: 'https://api.bitflyer.jp' + path,
+      method: method,
+      body: body,
+      headers: {
+      'ACCESS-KEY': API_Key,
+      'ACCESS-TIMESTAMP': timestamp,
+      'ACCESS-SIGN': sign,
+      'Content-Type': 'application/json'
+      }
+      };
+      request(options, function (err, response, payload) {
+      if (err){
+      reject(err);
+      return;
+      }
+      try {
+      payload = JSON.parse(payload);
+      if (payload.error_message) {
+      reject(payload.error_message);
+      return;
+      }
+      resolve(payload);
+      } catch (err) {
+      reject(err);
+      }
+      });
+      });
+      }
+
+
+      setTimeout(function() {
+      const buyPrice = Math.floor(ltp * 0.9);
+      buyOrder(buyPrice, 0.001).then((payload) => {
+      console.log(`注文に成功しました。注文ID ${payload.child_order_acceptance_id}`);
+      }).catch((err) => {
+      console.log(`注文に失敗しました。`);
+      console.log(err);
+      });
+      }, 1000 * 3);
+  </code></pre>
+
+
+  </body>
+</html>
